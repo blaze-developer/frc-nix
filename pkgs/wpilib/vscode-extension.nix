@@ -5,7 +5,7 @@
 , lib
 }:
 vscode-utils.buildVscodeExtension rec {
-  version = "2026.1.1";
+  version = "2026.2.1";
 
   pname = "${vscodeExtPublisher}-${vscodeExtName}";
   name = "${vscodeExtPublisher}-${vscodeExtName}-${version}";
