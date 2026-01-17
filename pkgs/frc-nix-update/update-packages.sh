@@ -9,6 +9,7 @@ REPO_ROOT="${REPO_ROOT:-$(pwd)}"
 DRY_RUN=false
 PACKAGES=()
 VERBOSE=false
+FORCE=false
 
 usage() {
     cat << EOF
@@ -18,12 +19,14 @@ Update FRC Nix packages to their latest versions.
 
 OPTIONS:
     --dry-run       Show what would be updated without making changes
+    --force         Force refetch hashes even if version hasn't changed
     --verbose       Show detailed output
     --help          Show this help message
 
 EXAMPLES:
     $0                          # Update all packages
     $0 --dry-run                # Show what would be updated
+    $0 --force choreo           # Force refetch hashes for choreo
     $0 choreo advantagescope    # Update specific packages
 EOF
 }
@@ -48,6 +51,10 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --dry-run)
             DRY_RUN=true
+            shift
+            ;;
+        --force)
+            FORCE=true
             shift
             ;;
         --verbose)
@@ -105,7 +112,7 @@ version_less_than() {
 get_current_version() {
     local file="$1"
     # Try different version patterns
-    if [[ "$file" == *"/wpilib/"* && ! "$file" == *"/default.nix" ]]; then
+    if [[ "$file" == *"/wpilib/"* && ! "$file" == *"/default.nix" && ! "$file" == *"/vscode-extension.nix" ]]; then
         # WPILib packages that inherit version from allwpilibSources
         grep -o 'version = "[^"]*"' "$REPO_ROOT/pkgs/wpilib/default.nix" | sed 's/version = "//; s/"//' || echo ""
     else
@@ -148,6 +155,35 @@ hex_to_sri() {
     nix-hash --type sha256 --to-sri "$hex" | tr -d '\n'
 }
 
+# Update allwpilibSources hash in WPILib default.nix
+update_allwpilib_sources_hash() {
+    local version="$1"
+    local file="$REPO_ROOT/pkgs/wpilib/default.nix"
+    
+    if [[ "$DRY_RUN" == "true" ]]; then
+        return 0
+    fi
+    
+    verbose "Fetching allwpilibSources hash for version $version"
+    
+    # Fetch the GitHub tarball and compute its hash
+    local url="https://github.com/wpilibsuite/allwpilib/archive/refs/tags/v${version}.tar.gz"
+    local hash
+    hash=$(nix-prefetch-url --unpack "$url" 2>/dev/null | tail -1)
+    
+    if [[ -z "$hash" ]]; then
+        error "Failed to fetch allwpilibSources hash for version $version"
+    fi
+    
+    # Convert to SRI format
+    hash=$(nix hash convert --hash-algo sha256 --to sri "$hash" | tr -d '\n')
+    
+    verbose "Got hash: $hash"
+    
+    # Update the hash in default.nix
+    sed -i "s|hash = \"sha256-[^\"]*\"|hash = \"$hash\"|" "$file"
+}
+
 # Fetch hashes for GitHub releases
 fetch_github_hashes() {
     local tool="$1"
@@ -182,12 +218,18 @@ fetch_github_hashes() {
             echo "hash = \"$hash\";"
             ;;
         "PathPlanner")
-            local output hash
-            if ! output=$(nix-prefetch-git "https://github.com/mjansen4857/pathplanner" "v${version}") || [ -z "$output" ]; then
-                echo "Error: nix-prefetch-git failed for PathPlanner v${version}" >&2
+            local hash
+            # Fetch the GitHub tarball and compute its hash
+            local url="https://github.com/mjansen4857/pathplanner/archive/refs/tags/v${version}.tar.gz"
+            hash=$(nix-prefetch-url --unpack "$url" 2>/dev/null | tail -1)
+            
+            if [[ -z "$hash" ]]; then
+                echo "Error: Failed to fetch hash for PathPlanner v${version}" >&2
                 return 1
             fi
-            hash=$(echo "$output" | jq -r '.hash')
+            
+            # Convert to SRI format
+            hash=$(nix hash convert --hash-algo sha256 --to sri "$hash" | tr -d '\n')
             echo "hash = \"$hash\";"
             ;;
     esac
@@ -254,7 +296,7 @@ format_nix_file() {
     # Run nix fmt on the file, but only if it exists and is a .nix file
     if [[ -f "$file" && "$file" == *.nix ]]; then
         # Change to repo root to ensure nix fmt can find flake.nix
-        if ! (cd "$REPO_ROOT" && nix fmt "$file" 2>/dev/null); then
+        if ! (cd "$REPO_ROOT" && nix fmt "$file" >/dev/null 2>&1); then
             echo "Warning: nix fmt failed for $file" >&2
         fi
     fi
@@ -385,8 +427,14 @@ update_github_package() {
     latest_version=$(get_github_latest "$repo")
 
     if [[ "$current_version" == "$latest_version" ]]; then
-    echo "  $name is up to date ($current_version)"
-    return 1  # Not updated
+        if [[ "$FORCE" == "true" ]]; then
+            echo "  $name: force refetching hashes ($current_version)"
+            update_hashes "$file" "$tool_name" "$current_version" "github"
+            format_nix_file "$file"
+            return 0  # Updated
+        fi
+        echo "  $name is up to date ($current_version)"
+        return 1  # Not updated
     fi
 
     echo "  $name: $current_version -> $latest_version"
@@ -470,6 +518,7 @@ update_all_packages() {
         ["choreo"]="SleipnirGroup/Choreo:pkgs/choreo/default.nix:Choreo"
         ["elastic-dashboard"]="Gold872/elastic_dashboard:pkgs/elastic-dashboard/default.nix:Elastic"
         ["pathplanner"]="mjansen4857/pathplanner:pkgs/pathplanner/default.nix:PathPlanner"
+        ["vscode-wpilib"]="wpilibsuite/vscode-wpilib:pkgs/wpilib/vscode-extension.nix:vscode-wpilib"
     )
 
     for package in "${!github_packages[@]}"; do
@@ -493,7 +542,6 @@ update_all_packages() {
         ["smartdashboard"]="pkgs/wpilib/smartdashboard.nix:SmartDashboard"
         ["sysid"]="pkgs/wpilib/sysid.nix:SysId"
         ["wpical"]="pkgs/wpilib/wpical.nix:wpical"
-        ["vscode-wpilib"]="pkgs/wpilib/vscode-extension.nix:vscode-wpilib"
     )
 
     # Check WPILib version once for all packages
@@ -536,7 +584,16 @@ update_all_packages() {
             # Update default.nix version once
             echo "  Updating WPILib version in default.nix"
             update_version "$REPO_ROOT/pkgs/wpilib/default.nix" "$wpilib_latest_version"
+            
+            # Update allwpilibSources hash
+            echo "  Updating allwpilibSources hash"
+            update_allwpilib_sources_hash "$wpilib_latest_version"
+            
             format_nix_file "$REPO_ROOT/pkgs/wpilib/default.nix"
+        elif [[ "$FORCE" == "true" ]]; then
+            wpilib_needs_update=true
+            wpilib_latest_version="$wpilib_current_version"
+            log "WPILib: force refetching hashes ($wpilib_current_version)"
         else
             log "WPILib is up to date ($wpilib_current_version)"
         fi
@@ -550,6 +607,12 @@ update_all_packages() {
                 if [[ "$wpilib_needs_update" == "true" ]]; then
                     # Version already checked and updated, just update hashes
                     if update_wpilib_package "$package" "$REPO_ROOT/$file" "$tool_name" "true" "$wpilib_latest_version"; then
+                        updated+=("$package")
+                    fi
+                elif [[ "$FORCE" == "true" ]]; then
+                    # Force refetch hashes even if version hasn't changed
+                    echo "  $package: force refetching hashes ($wpilib_current_version)"
+                    if update_wpilib_package "$package" "$REPO_ROOT/$file" "$tool_name" "true" "$wpilib_current_version"; then
                         updated+=("$package")
                     fi
                 else
@@ -575,7 +638,7 @@ update_all_packages() {
 check_deps() {
     local missing=()
 
-    for cmd in curl jq sed awk nix-prefetch-git nix; do
+    for cmd in curl jq sed awk nix; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
             missing+=("$cmd")
         fi
@@ -595,7 +658,7 @@ main() {
 
     update_all_packages
 
-    nix fmt "$REPO_ROOT"
+    nix fmt "$REPO_ROOT" >/dev/null 2>&1
 }
 
 main "$@"
