@@ -6,10 +6,10 @@ buildBinTool {
   name = "Glass";
 
   artifactHashes = {
-    linuxarm32 = "sha256-f4sV5RyvLrJZauRHXp3PSlqu0ii2qbNGe4ZEGPwpQH0=";
-    linuxarm64 = "sha256-BRQRzuUux57ZBC/d6qa2vqKn7CzH0KrUeN13Pk5pY6M=";
-    linuxx86-64 = "sha256-7bVDQQNl6R7cK1bpO+cFoQ3PJwaj5PZ9G2EQ0ouw2Ak=";
-    osxuniversal = "sha256-0qZc4rMbz69C1TUeWty0rxFHe/TSmso/xFYY9aupmm8=";
+    linuxarm32 = "sha256-3unu+iMeTTo07amvmxE1gwQ7jR8fPAlNtUrDnru2sB8=";
+    linuxarm64 = "sha256-L+XFLovS4OE6KVVPyK6HqGg3NdsP7CvwEwPXxizLyfA=";
+    linuxx86-64 = "sha256-GC5HeN4qdQnPvXEhyXy70jNknbHkoO3Ek8+j2Xhn6E0=";
+    osxuniversal = "sha256-22ePoqLDFSl/yR+bO3W6JBgMnF41BGaBr1Q8nfd/kBs=";
   };
 
   iconPng = "${allwpilibSources}/glass/src/app/native/resources/glass-512.png";
