@@ -17,9 +17,9 @@ let
   version = "26.0.0";
 
   src = fetchFromGitHub {
-    owner = "Mechanical-Advantage";
+    owner = "blaze-developer";
     repo = "AdvantageScope";
-    tag = "v${version}";
+    tag = "nixfix";
     hash = "sha256-ZkA7u/QlM5+w4l6ZrlRAxhtPelyLi4LqSjGs27IFGKU=";
   };
 
