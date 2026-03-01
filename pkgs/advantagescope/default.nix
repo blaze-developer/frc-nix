@@ -14,7 +14,7 @@
 }:
 let
   pname = "advantage-scope";
-  version = "26.0.0";
+  version = "26.0.1";
 
   src = fetchFromGitHub {
     owner = "blaze-developer";
