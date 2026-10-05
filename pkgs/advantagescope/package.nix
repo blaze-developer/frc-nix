@@ -38,7 +38,7 @@
   nss,
 }:
 let
-  pname = "advantagescope";
+  pname = "advantagescope-2027";
   version = "27.0.0-alpha-6";
 
   src = fetchFromGitHub {
@@ -68,7 +68,7 @@ let
   docs = callPackage ./docs.nix fetchersAtters;
   licenses = callPackage ./licenses.nix fetchersAtters;
   tesseract = callPackage ./tesseract-lang.nix fetchersAtters;
-  npmDepsHash = "sha256-+ounOAUnYv8RqYPS6VxZHSmIRXGJ6D+iFcr/0MKGu0c=";
+  npmDepsHash = "sha256-z/lsFrfrxgrTZlzZBDjwuE2c2jOOLO0A/6aAGaixzCA=";
 
   system = stdenv.hostPlatform.system;
 
@@ -130,9 +130,9 @@ buildNpmPackage (finalAttrs: {
 
   desktopItems = [
     (makeDesktopItem {
-      desktopName = "AdvantageScope";
+      desktopName = "AdvantageScope ${version}";
       name = pname;
-      exec = "advantagescope";
+      exec = "advantagescope-2027";
       icon = pname;
       categories = [
         "Robotics"
