@@ -38,8 +38,8 @@
   nss,
 }:
 let
-  pname = "advantagescope-2027";
   version = "27.0.0-alpha-6";
+  pname = "advantagescope-${version}";
 
   src = fetchFromGitHub {
     owner = "Mechanical-Advantage";
@@ -122,7 +122,7 @@ buildNpmPackage (finalAttrs: {
   '';
 
   postFixup = ''
-    makeWrapper $out/share/${pname}/advantagescope $out/bin/advantagescope \
+    makeWrapper $out/share/${pname}/advantagescope $out/bin/${pname} \
     --prefix PATH : ${lib.makeBinPath [ yt-dlp ]} \
     --set LD_LIBRARY_PATH ${lib.makeLibraryPath [ libGL ]} \
     --append-flags "--no-sandbox"
@@ -132,7 +132,7 @@ buildNpmPackage (finalAttrs: {
     (makeDesktopItem {
       desktopName = "AdvantageScope ${version}";
       name = pname;
-      exec = "advantagescope-2027";
+      exec = pname;
       icon = pname;
       categories = [
         "Robotics"
