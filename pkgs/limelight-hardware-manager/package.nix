@@ -4,7 +4,9 @@
   stdenv,
   appimageTools,
   fetchurl,
-  unzip
+  unzip,
+  makeDesktopItem,
+  copyDesktopItems
 }:
 let
   pname = "limelight-hardware-manager";
@@ -18,9 +20,6 @@ let
     "x86_64-linux" = "sha256-PzIXk5jC2p2pZ6DUF4vJSF2WNToO6/ghrQdi/d4benY=";
     "aarch64-linux" = "sha256-moK4NZP21TCEfS/T7P2QdC6WAIcP1lt0aAqP0WxTmCA=";
   };
-in
-appimageTools.wrapType2 {
-  inherit pname version;
 
   src = fetchurl {
     url = "https://downloads.limelightvision.io/software/${imageName}.zip";
@@ -35,12 +34,44 @@ appimageTools.wrapType2 {
     '';
   };
 
-  extraPkgs = pkgs: [
-    pkgs.icu
+  appimageContents = appimageTools.extract { inherit pname version src; };
+in
+appimageTools.wrapType2 rec {
+  inherit pname version src;
+  
+  installPhase = ''
+    install -Dm444 ${icon} "$out"/share/pixmaps/${pname}.svg
+  '';
+
+  extraPkgs = pkgs: [ pkgs.icu ];
+
+  nativeBuildInputs = [ copyDesktopItems ];
+
+  desktopItems = [
+    (makeDesktopItem {
+      desktopName = "Limelight Hardware Manager";
+      name = pname;
+      exec = pname;
+      icon = pname;
+      comment = "Hardware management utility for Limelight devices";
+      categories = [
+        "Robotics"
+        "System"
+        "Utility"
+      ];
+      keywords = [
+        "FRC"
+        "FTC"
+        "hardware"
+        "limelight"
+        "device"
+        "manager"
+      ];
+    })
   ];
 
   meta = {
-    description = "Limelight Hardware Manager is a utility tool used to discover, configure, and flash images onto the Limelight Systemcore and Limelight Smart Cameras.";
+    description = "Hardware management utility for Limelight devices";
     homepage = "https://docs.limelightvision.io";
     license = lib.licenses.unfree;
     maintainers = with frc-nix-maintainers; [ blaze-developer ];
