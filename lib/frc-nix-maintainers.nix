@@ -29,7 +29,7 @@ with lib.maintainers;
     github = "me-it-is";
     githubId = "188520719";
   };
-  
+
   blaze-developer = {
     name = "blaze-developer";
     github = "blaze-developer";
