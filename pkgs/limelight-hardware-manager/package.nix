@@ -14,15 +14,10 @@ let
 
   system = stdenv.hostPlatform.system;
 
-  imageName = "LimelightHardwareManager-${lib.removeSuffix "-linux" system}_${lib.strings.replaceString "." "_" version}.AppImage";
-
-  hashes = {
-    "x86_64-linux" = "sha256-PzIXk5jC2p2pZ6DUF4vJSF2WNToO6/ghrQdi/d4benY=";
-    "aarch64-linux" = "sha256-moK4NZP21TCEfS/T7P2QdC6WAIcP1lt0aAqP0WxTmCA=";
-  };
+  fileName = "LimelightHardwareManager-${lib.removeSuffix "-linux" system}_${lib.strings.replaceString "." "_" version}.AppImage";
 
   src = fetchurl {
-    url = "https://downloads.limelightvision.io/software/${imageName}.zip";
+    url = "https://downloads.limelightvision.io/software/${fileName}.zip";
     hash = hashes.${system};
 
     downloadToTemp = true;
@@ -34,13 +29,18 @@ let
     '';
   };
 
+  hashes = {
+    "x86_64-linux" = "sha256-PzIXk5jC2p2pZ6DUF4vJSF2WNToO6/ghrQdi/d4benY=";
+    "aarch64-linux" = "sha256-moK4NZP21TCEfS/T7P2QdC6WAIcP1lt0aAqP0WxTmCA=";
+  };
+
   appimageContents = appimageTools.extract { inherit pname version src; };
 in
 appimageTools.wrapType2 rec {
   inherit pname version src;
-  
+
   installPhase = ''
-    install -Dm444 ${icon} "$out"/share/pixmaps/${pname}.svg
+    install -Dm444 ${appimageContents}/${pname}.png "$out"/share/pixmaps/${pname}.svg
   '';
 
   extraPkgs = pkgs: [ pkgs.icu ];
