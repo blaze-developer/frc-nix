@@ -4,9 +4,7 @@
   stdenv,
   appimageTools,
   fetchurl,
-  unzip,
-  makeDesktopItem,
-  copyDesktopItems
+  unzip
 }:
 let
   pname = "limelight-hardware-manager";
@@ -39,36 +37,16 @@ in
 appimageTools.wrapType2 rec {
   inherit pname version src;
 
-  installPhase = ''
-    install -Dm444 ${appimageContents}/${pname}.png "$out"/share/pixmaps/${pname}.svg
+  extraInstallCommands = ''
+    install -Dm444 ${appimageContents}/limelight-hardware-manager.png $out/share/pixmaps/${pname}.png
+
+    install -Dm444 ${appimageContents}/limelight-hardware-manager.desktop $out/share/applications/${pname}.desktop
+
+    substituteInPlace $out/share/applications/${pname}.desktop \
+      --replace-fail 'Exec=/usr/bin/limelight-hardware-manager' 'Exec=${pname}'
   '';
 
   extraPkgs = pkgs: [ pkgs.icu ];
-
-  nativeBuildInputs = [ copyDesktopItems ];
-
-  desktopItems = [
-    (makeDesktopItem {
-      desktopName = "Limelight Hardware Manager";
-      name = pname;
-      exec = pname;
-      icon = pname;
-      comment = "Hardware management utility for Limelight devices";
-      categories = [
-        "Robotics"
-        "System"
-        "Utility"
-      ];
-      keywords = [
-        "FRC"
-        "FTC"
-        "hardware"
-        "limelight"
-        "device"
-        "manager"
-      ];
-    })
-  ];
 
   meta = {
     description = "Hardware management utility for Limelight devices";
