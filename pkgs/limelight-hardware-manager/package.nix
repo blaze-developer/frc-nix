@@ -39,17 +39,18 @@ appimageTools.wrapType2 (finalAttrs: {
   appimageContents = appimageTools.extract { inherit (finalAttrs) pname version src; };
 
   extraInstallCommands = ''
-    install -Dm444 ${finalAttrs.appimageContents}/limelight-hardware-manager.png $out/share/pixmaps/${finalAttrs.pname}.png
+    install -Dm444 ${finalAttrs.appimageContents}/limelight-hardware-manager.png -t $out/share/pixmaps
 
-    install -Dm444 ${finalAttrs.appimageContents}/limelight-hardware-manager.desktop $out/share/applications/${finalAttrs.pname}.desktop
+    install -Dm444 ${finalAttrs.appimageContents}/limelight-hardware-manager.desktop -t $out/share/applications
 
-    substituteInPlace $out/share/applications/${finalAttrs.pname}.desktop \
-      --replace-fail 'Exec=/usr/bin/limelight-hardware-manager' 'Exec=${finalAttrs.pname}'
+    substituteInPlace $out/share/applications/limelight-hardware-manager.desktop \
+      --replace-fail 'Exec=/usr/bin/limelight-hardware-manager' 'Exec=${finalAttrs.meta.mainProgram}'
   '';
 
   extraPkgs = pkgs: [ pkgs.icu ];
 
   meta = {
+    mainProgram = "limelight-hardware-manager";
     description = "Hardware management utility for Limelight devices";
     homepage = "https://docs.limelightvision.io";
     license = lib.licenses.unfree;
