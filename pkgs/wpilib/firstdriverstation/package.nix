@@ -29,11 +29,14 @@
   libxfixes,
   libxi,
   libxrandr,
+  libxkbcommon,
   openssl_legacy,
   pipewire,
   sndio,
   udev,
   webkitgtk_4_1,
+  wayland,
+  mesa,
 }:
 let
   pname = "firstdriverstation";
@@ -102,7 +105,10 @@ stdenv.mkDerivation (finalAttrs: {
     libice
     libsm
     libx11
+    libxkbcommon
+    libGL
     webkitgtk_4_1
+    wayland
   ];
 
   dontBuild = true;
