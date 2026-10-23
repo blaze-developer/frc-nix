@@ -53,6 +53,9 @@ appimageTools.wrapType2 (finalAttrs: {
 
   extraPkgs = pkgs: [ pkgs.icu ];
 
+  # Allow the package to see the udev rules installed (for the green indicator)
+  extraBwrapArgs = [ "--ro-bind-try /etc/udev /etc/udev" ];
+
   meta = {
     mainProgram = "limelight-hardware-manager";
     description = "Hardware management utility for Limelight devices";
