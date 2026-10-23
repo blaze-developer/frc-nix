@@ -19,4 +19,4 @@ This repository includes automated package updates:
 ## Docs
 
 - [Why doesn't my Simulation GUI work?](/docs/simulation-gui.md)
-
+- [Limelight Hardware Manager (NixOS)](/docs/limelight-hardware-manager.md)
