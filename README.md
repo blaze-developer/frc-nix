@@ -22,3 +22,4 @@ This repository includes automated package updates:
 - [FIRST Driver Station (NixOS)](/docs/firstdriverstation.md)
 - [Limelight Hardware Manager](/docs/limelight-hardware-manager.md)
 - [AdvantageScope XR](/docs/advantagescopexr.md)
+- [REV Hardware Client 2 (NixOS)](/docs/rev-hardware-client-2.md)
