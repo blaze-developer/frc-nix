@@ -34,6 +34,6 @@
   blaze-developer = {
     name = "blaze-developer";
     github = "blaze-developer";
-    githubId = "73793525";
+    githubId = 73793525;
   };
 }
