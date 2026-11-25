@@ -40,18 +40,19 @@
 }:
 let
   pname = "advantagescope";
-  version = "27.0.0-alpha-6";
+  version = "27.0.0-beta-1";
 
   src = fetchFromGitHub {
     owner = "Mechanical-Advantage";
     repo = "AdvantageScope";
     tag = "v${version}";
-    hash = "sha256-/444Hcpx+YrD8sUGgV4rTWhLeyB61j6QPcS36GT0ZZE=";
+    hash = "sha256-llBMcVBswT1m5xp2c8xmRiihce74aruoSbtYXZy5xBs=";
   };
 
   patches = [
     ./0001-change-build-targets.patch
     ./0001-fix-wasm-compile.patch
+    ./0001-switch-tiny-popup-menu-to-patch-with-package-lock.json.patch
     ./0001-switch-youtube-dl-to-patch-with-package-lock.json.patch
     ./0002-use-yt-dlp-from-path.patch # https://github.com/Mechanical-Advantage/AdvantageScope/pull/460
   ];
@@ -69,7 +70,7 @@ let
   docs = callPackage ./docs.nix fetchersAtters;
   licenses = callPackage ./licenses.nix fetchersAtters;
   tesseract = callPackage ./tesseract-lang.nix fetchersAtters;
-  npmDepsHash = "sha256-z/lsFrfrxgrTZlzZBDjwuE2c2jOOLO0A/6aAGaixzCA=";
+  npmDepsHash = "sha256-Yq5Vtx89FlKMWg0E7BiWiClf5l/q/gnbeUTVN7MXEYo=";
 
   system = stdenv.hostPlatform.system;
 
@@ -117,7 +118,7 @@ buildNpmPackage (finalAttrs: {
     mkdir -p $out/share/${pname}
     cp -r ./dist/${finalOutDir}/. $out/share/${pname}
 
-    install -Dm444 "${src}"/icons/app/app-icons-linux/icon_512x512.png "$out"/share/pixmaps/${pname}.png
+    install -Dm444 "${src}"/icons/app/app-icons-linux/512x512.png "$out"/share/pixmaps/${pname}.png
 
     runHook postInstall
   '';

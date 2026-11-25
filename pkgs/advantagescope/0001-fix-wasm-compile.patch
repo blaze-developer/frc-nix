@@ -1,12 +1,12 @@
 diff --git a/wasmCompile.mjs b/wasmCompile.mjs
-index f9cbb214..ed127489 100644
+index c8194974..ed127489 100644
 --- a/wasmCompile.mjs
 +++ b/wasmCompile.mjs
 @@ -8,7 +8,7 @@
  import { exec } from "child_process";
  import fs from "fs";
  
--const EMSCRIPTEN_VERSION = "4.0.12";
+-const EMSCRIPTEN_VERSION = "7.0.1";
 +const EMSCRIPTEN_VERSION = "";
  
  try {
